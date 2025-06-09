@@ -19,22 +19,46 @@ const getUserIdFromToken = () => {
 
 const ViewResults = () => {
   const [results, setResults] = useState([]);
-  const userId = getUserIdFromToken(); // <- use same method
+  const [loading, setLoading] = useState(true);
+  const userId = getUserIdFromToken();
 
   useEffect(() => {
     const fetchResults = async () => {
       try {
         const res = await api.get('/Results');
         const filtered = res.data.filter(r => String(r.userId) === String(userId));
-        setResults(filtered);
+
+        // For each result, fetch its corresponding assessment
+        const enrichedResults = await Promise.all(
+          filtered.map(async (result) => {
+            try {
+              const assessmentRes = await api.get(`/Assessments/${result.assessmentId}`);
+              return {
+                ...result,
+                assessmentTitle: assessmentRes.data?.title || 'Untitled Assessment',
+              };
+            } catch {
+              return {
+                ...result,
+                assessmentTitle: 'Assessment not found',
+              };
+            }
+          })
+        );
+
+        setResults(enrichedResults);
       } catch (error) {
         console.error('Failed to load results:', error);
         alert('Failed to load results.');
+      } finally {
+        setLoading(false);
       }
     };
 
     if (userId) fetchResults();
   }, [userId]);
+
+  if (loading) return <p>Loading results...</p>;
 
   return (
     <div className="container mt-4">
@@ -45,7 +69,7 @@ const ViewResults = () => {
         <ul className="list-group">
           {results.map(r => (
             <li key={r.resultId} className="list-group-item">
-              Assessment ID: {r.assessmentId} | Score: {r.score}
+              {r.assessmentTitle} — Score: {r.score}
             </li>
           ))}
         </ul>

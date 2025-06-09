@@ -26,9 +26,9 @@ const UploadAssessment = () => {
   const handleUpload = async (e) => {
     e.preventDefault();
 
-    // Validate JSON input
+    let parsedQuestions;
     try {
-      JSON.parse(questions);
+      parsedQuestions = JSON.parse(questions);
     } catch {
       alert('Questions field contains invalid JSON');
       return;
@@ -43,7 +43,7 @@ const UploadAssessment = () => {
       await api.post('/Assessments', {
         title,
         courseId,
-        questions, // send as string (JSON string)
+        questions: parsedQuestions, // Send parsed JSON array of questions
         maxScore: parseInt(maxScore),
       });
       alert('Assessment uploaded successfully');
@@ -95,6 +95,7 @@ const UploadAssessment = () => {
             rows={8}
             value={questions}
             onChange={(e) => setQuestions(e.target.value)}
+            placeholder={exampleJson}
             required
           />
           <small className="form-text text-muted">
@@ -109,6 +110,7 @@ const UploadAssessment = () => {
             value={maxScore}
             onChange={(e) => setMaxScore(e.target.value)}
             required
+            min={1}
           />
         </div>
         <button className="btn btn-primary" type="submit">
