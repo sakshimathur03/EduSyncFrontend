@@ -1,18 +1,18 @@
 trigger:
   branches:
     include:
-      - master   # deployment branch
+      - master   # or main, depending on your GitHub repo
 
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-- group: StaticWebAppSecrets  # Your variable group name with deployment token
+- group: StaticWebAppSecrets  # Make sure this variable group contains the secret token
 
 steps:
 - task: NodeTool@0
   inputs:
-    versionSpec: '18.x'   # Node version to build React app
+    versionSpec: '18.x'
   displayName: 'Install Node.js'
 
 - script: npm install
@@ -23,5 +23,7 @@ steps:
 
 - script: |
     npm install -g @azure/static-web-apps-cli
-    swa deploy build --app-name Frontend --env production --deployment-token $StaticWebAppDeploymentToken
+    swa deploy build --app-name Frontend --env production --deployment-token $DEPLOY_TOKEN
   displayName: 'Deploy to Azure Static Web Apps'
+  env:
+    DEPLOY_TOKEN: $(StaticWebAppDeploymentToken)  # Pass secret token securely
