@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-      - main   # or your deployment branch
+      - master   # deployment branch
 
 pool:
   vmImage: 'ubuntu-latest'
